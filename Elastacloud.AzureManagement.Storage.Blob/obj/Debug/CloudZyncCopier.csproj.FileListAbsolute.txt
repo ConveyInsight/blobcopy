@@ -1,0 +1,14 @@
+c:\users\richard\documents\visual studio 2012\Projects\CloudZyncCopier\CloudZyncCopier\bin\Debug\CloudZyncCopier.exe
+c:\users\richard\documents\visual studio 2012\Projects\CloudZyncCopier\CloudZyncCopier\bin\Debug\CloudZyncCopier.pdb
+c:\users\richard\documents\visual studio 2012\Projects\CloudZyncCopier\CloudZyncCopier\bin\Debug\Microsoft.Data.Edm.dll
+c:\users\richard\documents\visual studio 2012\Projects\CloudZyncCopier\CloudZyncCopier\bin\Debug\Microsoft.Data.OData.dll
+c:\users\richard\documents\visual studio 2012\Projects\CloudZyncCopier\CloudZyncCopier\bin\Debug\Microsoft.WindowsAzure.Configuration.dll
+c:\users\richard\documents\visual studio 2012\Projects\CloudZyncCopier\CloudZyncCopier\bin\Debug\Microsoft.WindowsAzure.Storage.dll
+c:\users\richard\documents\visual studio 2012\Projects\CloudZyncCopier\CloudZyncCopier\bin\Debug\System.Spatial.dll
+c:\users\richard\documents\visual studio 2012\Projects\CloudZyncCopier\CloudZyncCopier\bin\Debug\Microsoft.Data.Edm.xml
+c:\users\richard\documents\visual studio 2012\Projects\CloudZyncCopier\CloudZyncCopier\bin\Debug\Microsoft.Data.OData.xml
+c:\users\richard\documents\visual studio 2012\Projects\CloudZyncCopier\CloudZyncCopier\bin\Debug\Microsoft.WindowsAzure.Storage.xml
+c:\users\richard\documents\visual studio 2012\Projects\CloudZyncCopier\CloudZyncCopier\bin\Debug\System.Spatial.xml
+c:\users\richard\documents\visual studio 2012\Projects\CloudZyncCopier\CloudZyncCopier\obj\Debug\CloudZyncCopier.csprojResolveAssemblyReference.cache
+c:\users\richard\documents\visual studio 2012\Projects\CloudZyncCopier\CloudZyncCopier\obj\Debug\CloudZyncCopier.exe
+c:\users\richard\documents\visual studio 2012\Projects\CloudZyncCopier\CloudZyncCopier\obj\Debug\CloudZyncCopier.pdb
