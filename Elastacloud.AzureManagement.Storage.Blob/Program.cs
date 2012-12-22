@@ -36,6 +36,7 @@ namespace Elastacloud.AzureManagement.Storage
         public string DestinationAccountKey { get; set; }
         public string BlobName { get; set; }
         public bool DoAsync { get; set; }
+        public bool Force { get; set; }
 
         private bool ParseTokens(string[] args)
         {
@@ -77,11 +78,11 @@ namespace Elastacloud.AzureManagement.Storage
             {
                 Console.WriteLine(
                     "usage: blobcopy -SourceCopyContainer SourceCopyContainer -DestinationCopyContainer DestinationCopyContainer " +
-                    "-SourceCopyAccount SourceCopyAccount -DestinationCopyAccount DestinationCopyAccount -SourceAccountKey SourceAccountKey -DestinationAccountKey DestinationAccountKey [-BlobName blobName] [-Async]");
+                    "-SourceCopyAccount SourceCopyAccount -DestinationCopyAccount DestinationCopyAccount -SourceAccountKey SourceAccountKey -DestinationAccountKey DestinationAccountKey " + 
+                    "[-BlobName blobName] [-Async] [-Force]");
                 return false;
             }
             return true;
-
         }
 
     }

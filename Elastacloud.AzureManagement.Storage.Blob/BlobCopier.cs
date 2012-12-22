@@ -36,10 +36,11 @@ namespace Elastacloud.AzureManagement.Storage
             _storageKey = storageKey;
         }
 
+        #region Blob Copy Operations
         ///<summary> 
         /// Used to a copy a blob to a particular blob destination endpoint - this is a blocking call
         /// </summary>
-        public int CopyBlobTo(string blobName, BlobEndpoint destinationEndpoint, bool async = false)
+        public int CopyBlobTo(string blobName, BlobEndpoint destinationEndpoint, bool async = false, bool force = false)
         {
             var now = DateTime.Now;
             // get all of the details for the source blob
@@ -51,6 +52,12 @@ namespace Elastacloud.AzureManagement.Storage
             });
             // get all of the details for the destination blob
             var destinationBlob = GetCloudBlob(blobName, destinationEndpoint);
+            // check whether the blob should be copied or not - if it has changed then copy
+            if (!force)
+            {
+                if (AreBlobsIdentical(blobName, this, destinationEndpoint))
+                    return 0;
+            }
             // copy from the destination blob pulling the blob
             try
             {
@@ -99,25 +106,9 @@ namespace Elastacloud.AzureManagement.Storage
             return items.Sum(item => CopyBlobTo(((CloudBlockBlob)item).Name, destinationEndpoint, async));
         }
 
-        ///<summary> 
-        /// Used to determine whether the blob exists or not
-        /// </summary>
-        public bool BlobExists(string blobName)
-        {
-            // get the cloud blob
-            var cloudBlob = GetCloudBlob(blobName, this);
-            try
-            {
-                // this is the only way to test
-                cloudBlob.FetchAttributes();
-            }
-            catch (Exception)
-            {
-                // we should check for a variant of this exception but chances are it will be okay otherwise - that's defensive programming for you!
-                return false;
-            }
-            return true;
-        }
+        #endregion
+
+        #region Properties
 
         ///<summary> 
         /// The storage account name
@@ -144,6 +135,30 @@ namespace Elastacloud.AzureManagement.Storage
             get { return _storageKey; }
         }
 
+        #endregion
+
+        # region Helper Methods
+
+        ///<summary> 
+        /// Used to determine whether the blob exists or not
+        /// </summary>
+        public bool BlobExists(string blobName)
+        {
+            // get the cloud blob
+            var cloudBlob = GetCloudBlob(blobName, this);
+            try
+            {
+                // this is the only way to test
+                cloudBlob.FetchAttributes();
+            }
+            catch (Exception)
+            {
+                // we should check for a variant of this exception but chances are it will be okay otherwise - that's defensive programming for you!
+                return false;
+            }
+            return true;
+        }
+
         ///<summary> 
         /// Used to pull back the cloud blob that should be copied from or to
         /// </summary>
@@ -151,6 +166,38 @@ namespace Elastacloud.AzureManagement.Storage
         {
             var containerRef = GetCloudBlobContainer(endpoint);
             return containerRef.GetBlockBlobReference(blobName);
+        }
+
+        ///<summary> 
+        /// Used to pull back the cloud blob that should be copied from or to
+        /// </summary>
+        private ICloudBlob GetCloudBlob(string blobName)
+        {
+            return GetCloudBlob(blobName, this);
+        }
+
+        /// <summary>
+        /// Used to determine whether the blobs are the same or not before copying
+        /// </summary>
+        /// <param name="blobName">The name of the blob to check in both container</param>
+        /// <param name="sourceEndpoint">the endpoint of the source blob</param>
+        /// <param name="destinationEndpoint">the endpoint of the destination blob</param>
+        /// <returns>Checks whether the blobs are identical</returns>
+        private bool AreBlobsIdentical(string blobName, BlobEndpoint sourceEndpoint, BlobEndpoint destinationEndpoint)
+        {
+            bool exists = sourceEndpoint.BlobExists(blobName) && destinationEndpoint.BlobExists(blobName);
+            if (!exists)
+                return false;
+            var sourceBlob = GetCloudBlob(blobName, sourceEndpoint);
+            var destinationBlob = GetCloudBlob(blobName, destinationEndpoint);
+            sourceBlob.FetchAttributes();
+            destinationBlob.FetchAttributes();
+
+            if (sourceBlob.Properties.ContentMD5 != destinationBlob.Properties.ContentMD5)
+            {
+                return false;
+            }
+            return true;
         }
 
         /// <summary>
@@ -173,6 +220,7 @@ namespace Elastacloud.AzureManagement.Storage
             containerRef.CreateIfNotExists();
             return containerRef;
         }
+        #endregion
     }
 
 }
