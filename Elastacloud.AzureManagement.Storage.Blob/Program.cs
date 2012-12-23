@@ -11,9 +11,28 @@ namespace Elastacloud.AzureManagement.Storage
             if (!parse)
                 return;
 
-            var source = new BlobEndpoint(program.SourceCopyAccount, program.SourceCopyContainer, program.SourceAccountKey);
-            var destination = new BlobEndpoint(program.DestinationCopyAccount, program.DestinationCopyContainer, program.DestinationAccountKey);
-            int timeTaken = program.BlobName != null ? source.CopyBlobTo(program.BlobName, destination, program.DoAsync) : source.CopyAllBlobsTo(destination, program.DoAsync);
+            var sourceEndpointState = new BlobEndpointState()
+            {
+                AccountName = program.SourceCopyAccount,
+                AccountKey = program.SourceAccountKey,
+                ContainerName = program.SourceCopyContainer,
+                BlobName = program.BlobName,
+                Async = program.DoAsync,
+                Force = program.Force
+            };
+            var destinationEndpointState = new BlobEndpointState()
+            {
+                AccountName = program.DestinationCopyAccount,
+                AccountKey = program.DestinationAccountKey,
+                ContainerName = program.DestinationCopyContainer,
+                BlobName = program.BlobName,
+                Async = program.DoAsync,
+                Force = program.Force
+            };
+
+            var source = new BlobEndpoint(sourceEndpointState);
+            var destination = new BlobEndpoint(destinationEndpointState);
+            int timeTaken = program.BlobName != null ? source.CopyBlobTo(destination) : source.CopyAllBlobsTo(destination);
 
             if (program.DoAsync)
                 Console.WriteLine("All blobs copied asynchronously");

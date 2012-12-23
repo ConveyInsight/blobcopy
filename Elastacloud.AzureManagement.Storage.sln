@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elastacloud.AzureManagement.Storage.BlobCopy", "Elastacloud.AzureManagement.Storage.Blob\Elastacloud.AzureManagement.Storage.BlobCopy.csproj", "{751545D1-7824-41CF-AC62-25B0ACBC24A6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Elastacloud.AzureManagement.Storage", "Elastacloud.AzureManagement.Storage\Elastacloud.AzureManagement.Storage.csproj", "{E17D5042-0066-442E-A228-E29BD8F97660}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -13,6 +15,10 @@ Global
 		{751545D1-7824-41CF-AC62-25B0ACBC24A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{751545D1-7824-41CF-AC62-25B0ACBC24A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{751545D1-7824-41CF-AC62-25B0ACBC24A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E17D5042-0066-442E-A228-E29BD8F97660}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E17D5042-0066-442E-A228-E29BD8F97660}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E17D5042-0066-442E-A228-E29BD8F97660}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E17D5042-0066-442E-A228-E29BD8F97660}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

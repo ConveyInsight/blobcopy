@@ -14,48 +14,40 @@ namespace Elastacloud.AzureManagement.Storage
     /// </summary>
     public class BlobEndpoint
     {
-        ///<summary> 
-        /// The storage account name
+        /// <summary>
+        /// Used toconstruct a blob endpoint
         /// </summary>
-        private readonly string _storageAccountName = null;
-        ///<summary> 
-        /// The container name 
-        /// </summary>
-        private readonly string _containerName = null;
-        ///<summary> 
-        /// The storage key which is used to
-        /// </summary>
-        private readonly string _storageKey = null;
-        /// <summary> 
-        /// Used to construct a blob endpoint
-        /// </summary>
-        public BlobEndpoint(string storageAccountName, string containerName = null, string storageKey = null)
+        /// <param name="state">Contains the details to derive the blob endpoint</param>
+        public BlobEndpoint(BlobEndpointState state)
         {
-            _storageAccountName = storageAccountName;
-            _containerName = containerName;
-            _storageKey = storageKey;
+            EndpointState = state;
         }
+
+        /// <summary>
+        /// The default blob state for the endpoint
+        /// </summary>
+        protected BlobEndpointState EndpointState { get; set; }
 
         #region Blob Copy Operations
         ///<summary> 
         /// Used to a copy a blob to a particular blob destination endpoint - this is a blocking call
         /// </summary>
-        public int CopyBlobTo(string blobName, BlobEndpoint destinationEndpoint, bool async = false, bool force = false)
+        public int CopyBlobTo(BlobEndpoint destinationEndpoint)
         {
             var now = DateTime.Now;
             // get all of the details for the source blob
-            var sourceBlob = GetCloudBlob(blobName, this);
+            var sourceBlob = GetCloudBlob(EndpointState.BlobName, this);
             var signature = sourceBlob.GetSharedAccessSignature(new SharedAccessBlobPolicy()
             {
                 Permissions = SharedAccessBlobPermissions.Read,
                 SharedAccessExpiryTime = DateTime.UtcNow + TimeSpan.FromMinutes(10)
             });
             // get all of the details for the destination blob
-            var destinationBlob = GetCloudBlob(blobName, destinationEndpoint);
+            var destinationBlob = GetCloudBlob(destinationEndpoint.EndpointState.BlobName, destinationEndpoint);
             // check whether the blob should be copied or not - if it has changed then copy
-            if (!force)
+            if (!EndpointState.Force)
             {
-                if (AreBlobsIdentical(blobName, this, destinationEndpoint))
+                if (AreBlobsIdentical(EndpointState.BlobName, this, destinationEndpoint))
                     return 0;
             }
             // copy from the destination blob pulling the blob
@@ -78,7 +70,7 @@ namespace Elastacloud.AzureManagement.Storage
             const int seconds = 1800;
             int count = 0;
 
-            if (async)
+            if (EndpointState.Async)
                 return 0;
 
             while ((count * 10) < seconds)
@@ -97,42 +89,16 @@ namespace Elastacloud.AzureManagement.Storage
         /// All the blobs are being copied from endpoint to another
         /// </summary>
         /// <param name="destinationEndpoint">the destination endpoint to copy to</param>
-        /// <param name="async">Doing this asynchronously</param>
         /// <returns>A total of the number of seconds taken</returns>
-        public int CopyAllBlobsTo(BlobEndpoint destinationEndpoint, bool async = false)
+        public int CopyAllBlobsTo(BlobEndpoint destinationEndpoint)
         {
             var container = GetCloudBlobContainer(this);
             var items = container.ListBlobs(useFlatBlobListing: true);
-            return items.Sum(item => CopyBlobTo(((CloudBlockBlob)item).Name, destinationEndpoint, async));
-        }
-
-        #endregion
-
-        #region Properties
-
-        ///<summary> 
-        /// The storage account name
-        /// </summary>
-        public string StorageAccountName
-        {
-            get { return _storageAccountName; }
-        }
-
-        ///<summary> 
-        /// The name of the container the blob is in
-        /// </summary>
-        public string ContainerName
-        {
-            get { return _containerName; }
-        }
-
-        ///<summary> 
-        /// The key used to access the storage account
-        /// </summary>
-
-        public string StorageKey
-        {
-            get { return _storageKey; }
+            return items.Sum(item =>
+                                 {
+                                     destinationEndpoint.EndpointState.BlobName = ((CloudBlockBlob) item).Name;
+                                     return CopyBlobTo(destinationEndpoint);
+                                 });
         }
 
         #endregion
@@ -168,14 +134,6 @@ namespace Elastacloud.AzureManagement.Storage
             return containerRef.GetBlockBlobReference(blobName);
         }
 
-        ///<summary> 
-        /// Used to pull back the cloud blob that should be copied from or to
-        /// </summary>
-        private ICloudBlob GetCloudBlob(string blobName)
-        {
-            return GetCloudBlob(blobName, this);
-        }
-
         /// <summary>
         /// Used to determine whether the blobs are the same or not before copying
         /// </summary>
@@ -207,16 +165,16 @@ namespace Elastacloud.AzureManagement.Storage
         /// <returns>A CloudBlobClient instance</returns>
         private CloudBlobContainer GetCloudBlobContainer(BlobEndpoint endpoint)
         {
-            string blobClientConnectString = String.Format("http://{0}.blob.core.windows.net", endpoint.StorageAccountName);
+            string blobClientConnectString = String.Format("http://{0}.blob.core.windows.net", endpoint.EndpointState.AccountName);
             CloudBlobClient blobClient = null;
-            if (endpoint.StorageKey == null)
+            if (endpoint.EndpointState.AccountKey == null)
                 blobClient = new CloudBlobClient(new Uri(blobClientConnectString));
             else
             {
-                var account = new CloudStorageAccount(new StorageCredentials(endpoint.StorageAccountName, endpoint.StorageKey), false);
+                var account = new CloudStorageAccount(new StorageCredentials(endpoint.EndpointState.AccountName, endpoint.EndpointState.AccountKey), false);
                 blobClient = account.CreateCloudBlobClient();
             }
-            var containerRef = blobClient.GetContainerReference(endpoint.ContainerName);
+            var containerRef = blobClient.GetContainerReference(endpoint.EndpointState.ContainerName);
             containerRef.CreateIfNotExists();
             return containerRef;
         }
