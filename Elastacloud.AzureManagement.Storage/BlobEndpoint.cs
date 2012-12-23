@@ -36,18 +36,18 @@ namespace Elastacloud.AzureManagement.Storage
         {
             var now = DateTime.Now;
             // get all of the details for the source blob
-            var sourceBlob = GetCloudBlob(EndpointState.BlobName, this);
+            var sourceBlob = GetCloudBlob(this);
             var signature = sourceBlob.GetSharedAccessSignature(new SharedAccessBlobPolicy()
             {
                 Permissions = SharedAccessBlobPermissions.Read,
                 SharedAccessExpiryTime = DateTime.UtcNow + TimeSpan.FromMinutes(10)
             });
             // get all of the details for the destination blob
-            var destinationBlob = GetCloudBlob(destinationEndpoint.EndpointState.BlobName, destinationEndpoint);
+            var destinationBlob = GetCloudBlob(destinationEndpoint);
             // check whether the blob should be copied or not - if it has changed then copy
             if (!EndpointState.Force)
             {
-                if (AreBlobsIdentical(EndpointState.BlobName, this, destinationEndpoint))
+                if (AreBlobsIdentical(destinationEndpoint))
                     return 0;
             }
             // copy from the destination blob pulling the blob
@@ -96,7 +96,7 @@ namespace Elastacloud.AzureManagement.Storage
             var items = container.ListBlobs(useFlatBlobListing: true);
             return items.Sum(item =>
                                  {
-                                     destinationEndpoint.EndpointState.BlobName = ((CloudBlockBlob) item).Name;
+                                     EndpointState.BlobName = destinationEndpoint.EndpointState.BlobName = ((CloudBlockBlob) item).Name;
                                      return CopyBlobTo(destinationEndpoint);
                                  });
         }
@@ -111,7 +111,7 @@ namespace Elastacloud.AzureManagement.Storage
         public bool BlobExists(string blobName)
         {
             // get the cloud blob
-            var cloudBlob = GetCloudBlob(blobName, this);
+            var cloudBlob = GetCloudBlob(this);
             try
             {
                 // this is the only way to test
@@ -128,34 +128,46 @@ namespace Elastacloud.AzureManagement.Storage
         ///<summary> 
         /// Used to pull back the cloud blob that should be copied from or to
         /// </summary>
-        private ICloudBlob GetCloudBlob(string blobName, BlobEndpoint endpoint)
+        private ICloudBlob GetCloudBlob(BlobEndpoint endpoint)
         {
+            if (endpoint.EndpointState.BlobName == null)
+            {
+                throw new ApplicationException("unknown blob name - please ensure this value is set");    
+            }
+
             var containerRef = GetCloudBlobContainer(endpoint);
-            return containerRef.GetBlockBlobReference(blobName);
+            return containerRef.GetBlockBlobReference(endpoint.EndpointState.BlobName);
         }
 
         /// <summary>
         /// Used to determine whether the blobs are the same or not before copying
         /// </summary>
-        /// <param name="blobName">The name of the blob to check in both container</param>
         /// <param name="sourceEndpoint">the endpoint of the source blob</param>
         /// <param name="destinationEndpoint">the endpoint of the destination blob</param>
         /// <returns>Checks whether the blobs are identical</returns>
-        private bool AreBlobsIdentical(string blobName, BlobEndpoint sourceEndpoint, BlobEndpoint destinationEndpoint)
+        private bool AreBlobsIdentical(BlobEndpoint sourceEndpoint, BlobEndpoint destinationEndpoint)
         {
-            bool exists = sourceEndpoint.BlobExists(blobName) && destinationEndpoint.BlobExists(blobName);
+            bool exists = sourceEndpoint.BlobExists(sourceEndpoint.EndpointState.BlobName) 
+                && destinationEndpoint.BlobExists(destinationEndpoint.EndpointState.BlobName);
             if (!exists)
                 return false;
-            var sourceBlob = GetCloudBlob(blobName, sourceEndpoint);
-            var destinationBlob = GetCloudBlob(blobName, destinationEndpoint);
+            var sourceBlob = GetCloudBlob(sourceEndpoint);
+            var destinationBlob = GetCloudBlob(destinationEndpoint);
+            //need to fetch the attributes to get the md5 content tags
             sourceBlob.FetchAttributes();
             destinationBlob.FetchAttributes();
+            // check to see whether the md5 content tags are the same
+            return sourceBlob.Properties.ContentMD5 == destinationBlob.Properties.ContentMD5;
+        }
 
-            if (sourceBlob.Properties.ContentMD5 != destinationBlob.Properties.ContentMD5)
-            {
-                return false;
-            }
-            return true;
+        /// <summary>
+        /// Shortcut for the source blob to check whether the blob can copy 
+        /// </summary>
+        /// <param name="destinationBlobEndpoint">the destination endpoint</param>
+        /// <returns>True if the blobs are identical</returns>
+        private bool AreBlobsIdentical(BlobEndpoint destinationBlobEndpoint)
+        {
+            return AreBlobsIdentical(this, destinationBlobEndpoint);
         }
 
         /// <summary>
