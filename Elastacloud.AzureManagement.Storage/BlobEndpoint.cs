@@ -48,12 +48,16 @@ namespace Elastacloud.AzureManagement.Storage
             if (!EndpointState.Force)
             {
                 if (AreBlobsIdentical(destinationEndpoint))
+                {
+                    System.Diagnostics.Trace.TraceWarning("Skipping: {0}", sourceBlob.Uri.AbsoluteUri);
                     return 0;
+                }
             }
             // copy from the destination blob pulling the blob
             try
             {
                 destinationBlob.StartCopyFromBlob(new Uri(sourceBlob.Uri.AbsoluteUri + signature));
+                System.Diagnostics.Trace.TraceInformation("Copying: {0}", destinationEndpoint.EndpointState.BlobName);
             }
             catch (Exception ex)
             {
@@ -61,7 +65,7 @@ namespace Elastacloud.AzureManagement.Storage
                 if (we != null && we.Status == WebExceptionStatus.ProtocolError)
                 {
                     // TODO: replace this with a tracelistener
-                    Console.WriteLine("conflict with blob copy for blob {0} - you currently have a pending blob already waiting to be copied", sourceBlob.Uri.AbsoluteUri);
+                    System.Diagnostics.Trace.TraceError("conflict with blob copy for blob {0} - you currently have a pending blob already waiting to be copied", sourceBlob.Uri.AbsoluteUri);
                     return 0;
                 }
             }
