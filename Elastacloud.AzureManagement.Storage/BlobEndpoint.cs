@@ -161,7 +161,8 @@ namespace Elastacloud.AzureManagement.Storage
             sourceBlob.FetchAttributes();
             destinationBlob.FetchAttributes();
             // check to see whether the md5 content tags are the same
-            return sourceBlob.Properties.ContentMD5 == destinationBlob.Properties.ContentMD5;
+            return sourceBlob.Properties.ContentMD5 == destinationBlob.Properties.ContentMD5  &&
+                sourceBlob.Properties.Length == destinationBlob.Properties.Length;
         }
 
         /// <summary>
