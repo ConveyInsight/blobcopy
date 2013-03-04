@@ -64,16 +64,16 @@ namespace Elastacloud.AzureManagement.Storage
             {
                 switch (args[i])
                 {
-                    case "-SourceCopyContainer":
+                    case "-SourceContainerName":
                         SourceCopyContainer = args[i + 1];
                         break;
-                    case "-DestinationCopyContainer":
+                    case "-DestinationContainerName":
                         DestinationCopyContainer = args[i + 1];
                         break;
-                    case "-SourceCopyAccount":
+                    case "-SourceAccountName":
                         SourceCopyAccount = args[i + 1];
                         break;
-                    case "-DestinationCopyAccount":
+                    case "-DestinationAccountName":
                         DestinationCopyAccount = args[i + 1];
                         break;
                     case "-SourceAccountKey":
