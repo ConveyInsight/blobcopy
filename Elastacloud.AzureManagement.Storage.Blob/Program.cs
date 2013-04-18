@@ -6,6 +6,8 @@ namespace Elastacloud.AzureManagement.Storage
     {
         private static void Main(string[] args)
         {
+            BlobEndpoint destination = null, source = null;
+
             var program = new Program();
             bool parse = program.ParseTokens(args);
             if (!parse)
@@ -20,6 +22,7 @@ namespace Elastacloud.AzureManagement.Storage
                 Async = program.DoAsync,
                 Force = program.Force
             };
+
             var destinationEndpointState = new BlobEndpointState()
             {
                 AccountName = program.DestinationCopyAccount,
@@ -29,9 +32,17 @@ namespace Elastacloud.AzureManagement.Storage
                 Async = program.DoAsync,
                 Force = program.Force
             };
+            destination = new BlobEndpoint(destinationEndpointState);
 
-            var source = new BlobEndpoint(sourceEndpointState);
-            var destination = new BlobEndpoint(destinationEndpointState);
+            if (program.HttpEndpoint != null)
+            {
+                source = new BlobEndpoint(program.HttpEndpoint);
+            }
+            else
+            {
+                source = new BlobEndpoint(sourceEndpointState);
+            }
+
             int timeTaken = program.BlobName != null ? source.CopyBlobTo(destination) : source.CopyAllBlobsTo(destination);
 
             if (program.DoAsync)
@@ -54,6 +65,7 @@ namespace Elastacloud.AzureManagement.Storage
         public string SourceAccountKey { get; set; }
         public string DestinationAccountKey { get; set; }
         public string BlobName { get; set; }
+        public string HttpEndpoint { get; set; }
         public bool DoAsync { get; set; }
         public bool Force { get; set; }
 
@@ -82,6 +94,9 @@ namespace Elastacloud.AzureManagement.Storage
                     case "-DestinationAccountKey":
                         DestinationAccountKey = args[i + 1];
                         break;
+                    case "-HttpEndpoint":
+                        HttpEndpoint = args[i + 1];
+                        break;
                     case "-BlobName":
                         BlobName = args[i + 1];
                         break;
@@ -92,13 +107,12 @@ namespace Elastacloud.AzureManagement.Storage
 
             }
 
-            if (SourceCopyContainer == null || DestinationCopyContainer == null || SourceCopyAccount == null ||
-                DestinationCopyAccount == null || SourceAccountKey == null || DestinationAccountKey == null)
+            if (DestinationCopyContainer == null || DestinationCopyAccount == null || DestinationAccountKey == null)
             {
                 Console.WriteLine(
                     "usage: blobcopy -SourceCopyContainer SourceCopyContainer -DestinationCopyContainer DestinationCopyContainer " +
                     "-SourceCopyAccount SourceCopyAccount -DestinationCopyAccount DestinationCopyAccount -SourceAccountKey SourceAccountKey -DestinationAccountKey DestinationAccountKey " + 
-                    "[-BlobName blobName] [-Async] [-Force]");
+                    "[-BlobName blobName] [-Async] [-Force] [-HttpEndpoint]");
                 return false;
             }
             return true;
